@@ -5,67 +5,88 @@
 [![MediaPipe](https://img.shields.io/badge/MediaPipe-Hand%20Tracking-00A67E?style=for-the-badge)](https://developers.google.com/mediapipe)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-A real-time Computer Vision application that lets you control your computer's system master volume using hand gestures captured via a webcam. Built using OpenCV, Google MediaPipe, and PyCAW.
+A real-time Computer Vision application that enables touchless system master volume control using natural hand gestures captured via a webcam. Built with Python, OpenCV, Google MediaPipe, and PyCAW.
 
 ---
 
-## 📌 Demo & Preview
+## 📌 Live Demo & Preview
 
 <p align="center">
-  <img src="image/Output.gif" alt="Gesture Volume Control Demo" width="650"/>
+  <img src="image/Output.gif" alt="Gesture Volume Control Live Demo" width="700"/>
 </p>
 
 ---
 
 ## ✨ Features
 
-- **Real-Time Hand Tracking:** Detects 21 hand landmarks at high FPS using Google MediaPipe.
-- **Intuitive Touchless Control:** Adjust master volume by varying the distance between your thumb and index fingertip.
-- **On-Screen Visual Feedback:**
-  - Dynamic volume percentage indicator and HUD level bar.
-  - Tracking lines and landmark nodes highlighting gesture states.
-  - Real-time FPS counter to monitor performance.
-- **Native OS Integration:** Communicates directly with system audio endpoints via `pycaw`.
+- **High-Precision Hand Tracking:** Real-time detection and 21-landmark tracking powered by Google MediaPipe Hands.
+- **Natural Touchless Gestures:** Dynamic system master volume adjustment based on the Euclidean distance between thumb and index fingertips.
+- **Rich Visual HUD:**
+  - On-screen volume level bar with rounded corners and gradient fill.
+  - Live volume percentage indicator with dark contrast background.
+  - Visual tracking line and glowing endpoint nodes highlighting pinch state.
+  - Contextual on-screen user instructions and quit cues.
+- **Native OS Core Audio Integration:** Direct communication with Windows system audio endpoints via `pycaw`.
 
 ---
 
-## 🛠️ Tech Stack & Architecture
+## 🧠 Hand Landmark & Gesture Recognition Architecture
 
-- **Language:** Python
-- **Vision & Landmark Tracking:** `opencv-python`, `mediapipe`
-- **Math & Transformations:** `numpy`, `math` (Euclidean distance & linear interpolation)
-- **Audio Control:** `pycaw`, `comtypes` (Windows Core Audio API)
-
-### How It Works
-
-```
- Webcam Feed
-      │
-      ▼
- MediaPipe Hands ──► Extracts 21 Landmark Coordinates
-      │
-      ▼
- Calculate Euclidean Distance between Landmark 4 (Thumb) & Landmark 8 (Index)
-      │
-      ▼
- Linear Interpolation (numpy.interp): [Pixel Distance Range] ──► [System Volume dB / %]
-      │
-      ▼
- PyCAW Endpoint Controller ──► Adjusts System Master Audio Level
-      │
-      ▼
- OpenCV Render ──► Displays HUD Bar, Percentage & Real-Time FPS
-```
-
----
-
-## 🖐️ Landmark Reference
-
-The gesture logic tracks Landmark 4 (Thumb Tip) and Landmark 8 (Index Finger Tip):
+The tracking pipeline relies on Google MediaPipe Hand Landmark coordinates:
 
 <p align="center">
-  <img src="image/hand_landmarks_docs.png" alt="MediaPipe Hand Landmarks" width="550"/>
+  <img src="image/hand_landmarks_docs.png" alt="MediaPipe 21 Hand Landmarks Reference" width="600"/>
 </p>
+
+### Diverse Gesture Detection Examples
+
+The underlying hand landmark detector functions across varying angles, poses, and backgrounds:
+
+<p align="center">
+  <img src="image/htm.jpg" alt="Hand Tracking Model Landmark Poses" width="650"/>
+</p>
+
+---
+
+## 🛠️ System Architecture & Workflow
+
+```
+   ┌──────────────────┐
+   │   Webcam Feed    │
+   └────────┬─────────┘
+            │
+            ▼
+   ┌──────────────────────────────────────────┐
+   │      MediaPipe Hands Model Pipeline       │
+   │  Extracts 21 3D hand landmark coordinates │
+   └────────┬─────────────────────────────────┘
+            │
+            ▼
+   ┌──────────────────────────────────────────┐
+   │        Euclidean Distance Metric         │
+   │  d = √((x2 - x1)² + (y2 - y1)²)          │
+   │  Between Landmark 4 (Thumb) & 8 (Index)  │
+   └────────┬─────────────────────────────────┘
+            │
+            ▼
+   ┌──────────────────────────────────────────┐
+   │        Linear Interpolation (NumPy)      │
+   │  [50px, 220px] ──► [minVol dB, maxVol dB]│
+   │  [50px, 220px] ──► [0%, 100%] Volume     │
+   └────────┬─────────────────────────────────┘
+            │
+            ▼
+   ┌──────────────────────────────────────────┐
+   │      PyCAW Endpoint Volume Control       │
+   │  IAudioEndpointVolume.SetMasterVolume    │
+   └────────┬─────────────────────────────────┘
+            │
+            ▼
+   ┌──────────────────────────────────────────┐
+   │        OpenCV Rendering & HUD Display    │
+   │  Dynamic bar, live %, glow nodes & cues  │
+   └──────────────────────────────────────────┘
+```
 
 ---
 
@@ -75,7 +96,7 @@ The gesture logic tracks Landmark 4 (Thumb Tip) and Landmark 8 (Index Finger Tip
 
 - Python 3.8 or higher
 - A working webcam
-- OS: Windows (for PyCAW Core Audio API integration)
+- Operating System: Windows (required for PyCAW Core Audio API)
 
 ### Installation
 
@@ -85,13 +106,11 @@ The gesture logic tracks Landmark 4 (Thumb Tip) and Landmark 8 (Index Finger Tip
    cd Gesture-Volume-Control
    ```
 
-2. **Create a virtual environment (optional but recommended):**
+2. **Create and activate a virtual environment (recommended):**
    ```bash
+   # Windows (Command Prompt / PowerShell)
    python -m venv venv
-   # On Windows:
    venv\Scripts\activate
-   # On Linux/macOS:
-   source venv/bin/activate
    ```
 
 3. **Install dependencies:**
@@ -103,52 +122,48 @@ The gesture logic tracks Landmark 4 (Thumb Tip) and Landmark 8 (Index Finger Tip
 
 ## 🎮 Usage
 
-Run the main application script:
+Run the main application:
 
 ```bash
 python main.py
 ```
 
-### Controls
+### Controls Guide
 
-| Gesture / Action | Result |
-| :--- | :--- |
-| **Pinch Thumb & Index closer** | Decreases system volume |
-| **Spread Thumb & Index apart** | Increases system volume |
-| **Distance < threshold (pinch tap)** | Volume level drops to minimum (mute) |
-| **Press `q` on the video window** | Exit application cleanly |
+| Action / Gesture | Visual Cue | Output |
+| :--- | :--- | :--- |
+| **Bring Thumb & Index closer** | Green line shortens | Volume decreases |
+| **Spread Thumb & Index apart** | Green line lengthens | Volume increases |
+| **Pinch tight ($d < 50\text{px}$)** | Line turns Red | Volume mutes / drops to 0% |
+| **Press `q`** | — | Exits application window |
 
 ---
 
-## 📁 Project Structure
+## 📁 Repository Structure
 
 ```text
 Gesture-Volume-Control/
 │
 ├── image/
-│   ├── Output.gif                # Demo recording
-│   ├── hand_landmarks_docs.png   # MediaPipe landmark diagram
-│   └── htm.jpg                   # Hand tracking diagram/preview
+│   ├── Output.gif                # Animated live demo recording
+│   ├── hand_landmarks_docs.png   # MediaPipe 21 hand landmarks diagram
+│   └── htm.jpg                   # Multi-pose hand tracking visualization
 │
-├── main.py                       # Main application script
-├── requirements.txt              # Required Python packages
+├── main.py                       # Core tracking and audio control script
+├── requirements.txt              # Pinned Python package dependencies
 ├── License                       # MIT License
 └── README.md                     # Project documentation
 ```
 
 ---
 
-## 🤝 Contributing
+## 📦 Dependencies
 
-Contributions, issues, and feature requests are welcome! Feel free to open an issue or submit a PR.
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
----
+- `opencv-python`: Video capture, image processing, and visual HUD rendering
+- `mediapipe`: Machine learning pipeline for real-time 21 hand-landmark tracking
+- `numpy`: Fast mathematical array processing and linear range interpolation
+- `pycaw`: Python Core Audio Windows library for master volume control
+- `comtypes`: Pure Python COM interface package backing PyCAW
 
 ---
 
